@@ -1,0 +1,89 @@
+import tkinter as tk
+import math
+
+class AdvancedCalculator:
+    def __init__(self, root):
+        self.root = root
+        self.root.title("Advanced Calculator")
+        self.root.geometry("400x600")
+
+        self.current_input = ""
+        self.result_var = tk.StringVar()
+        self.result_var.set("")
+
+        self.create_widgets()
+        self.memory = 0
+        self.history = []
+
+    def create_widgets(self):
+        entry = tk.Entry(self.root, textvariable=self.result_var, font=("Helvetica", 20))
+        entry.pack(fill=tk.BOTH, expand=True, padx=10, pady=10, ipadx=10, ipady=10)
+
+        button_grid = [
+            '7', '8', '9', '/', 'M+', 'MR',
+            '4', '5', '6', '*', 'M-', 'MC',
+            '1', '2', '3', '-', 'sqrt', 'log',
+            '0', '.', '=', '+', 'pow', 'sin',
+            'C', '(', ')', 'exp', 'cos', 'tan'
+        ]
+
+        button_frame = tk.Frame(self.root)
+        button_frame.pack()
+
+        row, col = 1, 0
+        for button_text in button_grid:
+            tk.Button(button_frame, text=button_text, width=8, height=3, command=lambda t=button_text: self.button_click(t)).grid(row=row, column=col)
+            col += 1
+            if col > 5:
+                col = 0
+                row += 1
+
+        history_frame = tk.Frame(self.root)
+        history_frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
+        scrollbar = tk.Scrollbar(history_frame)
+        scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+        self.history_text = tk.Text(history_frame, wrap=tk.WORD, yscrollcommand=scrollbar.set, font=("Helvetica", 12))
+        self.history_text.pack(fill=tk.BOTH, expand=True)
+        scrollbar.config(command=self.history_text.yview)
+
+    def button_click(self, text):
+        if text == "=":
+            try:
+                result = self.evaluate_expression(self.current_input)
+                self.result_var.set(result)
+                self.history.append(f"{self.current_input} = {result}")
+                self.update_history_text()
+                self.current_input = str(result)
+            except Exception as e:
+                self.result_var.set("Error")
+        elif text == "C":
+            self.current_input = ""
+            self.result_var.set("")
+        elif text == "M+":
+            self.memory += float(self.result_var.get())
+        elif text == "M-":
+            self.memory -= float(self.result_var.get())
+        elif text == "MR":
+            self.current_input += str(self.memory)
+            self.result_var.set(self.current_input)
+        elif text == "MC":
+            self.memory = 0
+        else:
+            self.current_input += text
+            self.result_var.set(self.current_input)
+
+    def evaluate_expression(self, expression):
+        try:
+            return str(eval(expression))
+        except Exception:
+            return "Error"
+
+    def update_history_text(self):
+        self.history_text.delete("1.0", tk.END)
+        for item in self.history:
+            self.history_text.insert(tk.END, item + "\n")
+
+if __name__ == "__main__":
+    root = tk.Tk()
+    calculator = AdvancedCalculator(root)
+    root.mainloop()
